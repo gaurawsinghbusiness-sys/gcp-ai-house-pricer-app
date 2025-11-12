@@ -33,6 +33,50 @@
         </div>
     </main>
     
-    <script src="script.js"></script>
+    <script src="script.js"><script>
+    const form = document.getElementById('price-form');
+    const resultDiv = document.getElementById('result');
+
+    // This is the new part.
+    // Instead of a fake URL, it calls our *own* backend.
+    const BACKEND_PREDICT_URL = '/predict';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Stop the page from reloading
+        
+        // 1. Get the data from the form
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        resultDiv.innerHTML = "Asking the AI... (This may take a moment)";
+
+        try {
+            // 2. CALL THE "BRAIN" (our new /predict function)
+            const response = await fetch(BACKEND_PREDICT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data) // Send data as JSON
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // 3. GET THE PREDICTION BACK
+            const result = await response.json();
+            
+            // 4. SHOW THE USER!
+            // We use .toFixed(2) to make it look like money (e.g., 350000.00)
+            const price = result.predicted_price.toFixed(2);
+            resultDiv.innerHTML = `<h3>Predicted Price: $${price}</h3>`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            resultDiv.innerHTML = "Error talking to the AI. Check console.";
+        }
+    });
+</script></script>
 </body>
 </html>
